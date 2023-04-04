@@ -1,22 +1,21 @@
-// Include libraries
 #include <Servo.h>
 
 // Define constants
 #define trigPin 53
 #define echoPin 52
 #define servoPin 8  
-#define in1 2
-#define in2 3
-#define in3 4
-#define in4 5
-#define en2
-#define en1
+#define in1 42
+#define in2 43
+#define in3 41
+#define in4 40
+#define en2 7
+#define en1 6
 
 // Define variables
 Servo myservo;
 int distance;
 int angle = 90;
-
+int mindist=15;
 void setup() {
   // Initialize serial communication
   Serial.begin(9600);
@@ -50,17 +49,17 @@ void loop() {
   // Print the distance
   Serial.print("Distance: ");
   Serial.print(distance);
-  Serial.println(" cm");
+  Serial.print(" cm  ");
 
   // Check if there is an obstacle within 20 cm
-  if (distance < 20) {
-    // Move the robot backward and turn the servo to avoid the obstacle
-    digitalWrite(in1, LOW);
-    digitalWrite(in2, HIGH);
-    digitalWrite(in3, HIGH);
-    digitalWrite(in4, LOW);
-   analogWrite(en1,100);
-   analogWrite(en2,100);
+  if (distance < mindist) {
+//    // Move the robot backward and turn the servo to avoid the obstacle
+//    digitalWrite(in1, LOW);
+//    digitalWrite(in2, HIGH);
+//    digitalWrite(in3, HIGH);
+//    digitalWrite(in4, LOW);
+//   analogWrite(en1,100);
+//   analogWrite(en2,100);
     if (angle == 90) {
       angle = 0;
     } else if (angle == 0) {
@@ -74,10 +73,10 @@ void loop() {
     }
    
     
-    Serial.print(angle);
+    
     
     myservo.write(angle);
-  } if(distance>20) {
+  } if(angle==90 && distance>mindist) {
     // Move the robot forward
     digitalWrite(in1, HIGH);
     digitalWrite(in2, LOW);
@@ -85,11 +84,39 @@ void loop() {
     digitalWrite(in4, HIGH);
     analogWrite(en1,100);
     analogWrite(en2,100);
+    Serial.print("forward");
     
   }
+  if(angle==0 && distance>mindist) {
+    // Move the robot right
+    digitalWrite(in1, HIGH);
+    digitalWrite(in2, LOW);
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, HIGH);
+    analogWrite(en1,100);
+    analogWrite(en2,140);
+    Serial.print("right");
+  }
+  if(angle==180 && distance>mindist) {
+    // Move the robot left
+    digitalWrite(in1, HIGH);
+    digitalWrite(in2, LOW);
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, HIGH);
+    analogWrite(en1, 140);
+    analogWrite(en2, 100);
+    Serial.print("left");
+    
+    
+  }//delay(2000);
+//  if(angle!=90){
+//    angle=90;
+//  }
   
   // Wait for 200ms before measuring the distance again
   delay(200);
+  Serial.print("   ");
+  Serial.println(angle);
 
   
 }
