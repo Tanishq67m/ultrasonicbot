@@ -1,119 +1,95 @@
+// Include libraries
 #include <Servo.h>
+
+// Define constants
+#define trigPin 53
+#define echoPin 52
+#define servoPin 8  
+#define in1 2
+#define in2 3
+#define in3 4
+#define in4 5
+#define en2
+#define en1
+
+// Define variables
 Servo myservo;
-int enA = 4;
-int in1 = 40;
-int in2 = 41;
-int enB = 5;
-int in3 = 42;
-int in4 = 43;
-byte trig = 13;
-byte echo = 12;
-
-byte maxdist = 150; // max sensing dist
-byte mindist = 15; // min dist to stop
-byte stopdist = 10;
-float timeout = 2 * (maxdist + 10) / 100 / 340 * 1000000;
-int pos = 0;
-
-byte motorspeed = 50;
-//int turnspeed = 45; // amount added when turning
-long duration;
 int distance;
+int angle = 90;
 
 void setup() {
+  // Initialize serial communication
+  Serial.begin(9600);
 
-  pinMode(enA, OUTPUT);
-  pinMode(enB, OUTPUT);
+  // Configure pins
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
   pinMode(in1, OUTPUT);
   pinMode(in2, OUTPUT);
   pinMode(in3, OUTPUT);
   pinMode(in4, OUTPUT);
-  pinMode(trig,OUTPUT); 
-  pinMode(echo,INPUT);
-  Serial.begin(9600);
-  myservo.attach(8);
+  pinMode(en1, OUTPUT);
+  pinMode(en2, OUTPUT);
+
+  // Initialize servo
+  myservo.attach(servoPin);
+
+  // Set the initial angle of the servo
+  myservo.write(angle);
 }
-void dist(){ digitalWrite(trig, LOW);
-  delayMicroseconds(2); // wait for 2 ms to avoid
-  // collision in serial monitor
-
-  digitalWrite(trig, HIGH); // turn on the Trigger to generate pulse
-  delayMicroseconds(10); // keep the trigger "ON" for 10 ms to generate
-  // pulse for 10 ms.
-
-  digitalWrite(trig,LOW); // Turn off the pulse trigger to stop
-
-  duration = pulseIn(echo, HIGH);
-  distance = duration * 0.0344 / 2; // Expression to calculate
-  // distance using 
-
-
-//    
-}
-//void checkdirection() {
-//  
-//}
 
 void loop() {
-  dist();
-  if (distance <= mindist) { // motor stop
+  // Measure the distance
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  distance = pulseIn(echoPin, HIGH) / 58.2;
 
-    Serial.println("turning");
-  for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 90 degrees
-    // in steps of 1 degree
-    myservo.write(pos);              // tell servo to go to position in variable 'pos'
-    delay(15);
+  // Print the distance
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  // Check if there is an obstacle within 20 cm
+  if (distance < 20) {
+    // Move the robot backward and turn the servo to avoid the obstacle
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, HIGH);
+    digitalWrite(in3, HIGH);
+    digitalWrite(in4, LOW);
+   analogWrite(en1,100);
+   analogWrite(en2,100);
+    if (angle == 90) {
+      angle = 0;
+    } else if (angle == 0) {
+      angle = 85;
+    } 
+    else if(angle == 85){
+      angle = 180; 
+    }
+    else if(angle == 180){
+      angle = 90; 
+    }
+   
+    
+    Serial.print(angle);
+    
+    myservo.write(angle);
+  } if(distance>20) {
+    // Move the robot forward
+    digitalWrite(in1, HIGH);
+    digitalWrite(in2, LOW);
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, HIGH);
+    analogWrite(en1,100);
+    analogWrite(en2,100);
+    
   }
-  }
-  delay(300);
   
- 
- // Serial.println(distance); // Print the output in serial monitor
+  // Wait for 200ms before measuring the distance again
+  delay(200);
 
-  delay(100);
-
-if(distance > mindist) {
-  digitalWrite(in1, HIGH);
-  digitalWrite(in2, LOW);
-  digitalWrite(in3, LOW);
-  digitalWrite(in4, HIGH);
-  analogWrite(enA, 110);
-  analogWrite(enB, 110);
-  Serial.println("forward");
-}
-
-
-int turndir = checkDirection(); //check left and right
-Serial.println(turndir);
-switch (turndir)
-{
-case 0 :
-  Serial.println("left");
-  digitalWrite(in1, HIGH);
-  digitalWrite(in2, LOW);
-  digitalWrite(in3, HIGH);
-  digitalWrite(in4, LOW);
-  analogWrite(enA, 100);
-  analogWrite(enB, 145);
-  break;
-
-
-case 1:
-  Serial.println("right");
-  digitalWrite(in1, HIGH);
-  digitalWrite(in2, LOW);
-  digitalWrite(in3, HIGH);
-  digitalWrite(in4, LOW);
-  analogWrite(enA, 140);
-  analogWrite(enB, 100);
-  break;
-
-}
-if (distance <= stopdist) { 
-  analogWrite(enA, 0);
-analogWrite(enB, 0);
-Serial.println("stop");
-
-}
-
+  
 }
